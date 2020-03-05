@@ -1,0 +1,16 @@
+apply plugin: 'jacoco-android'
+
+jacocoAndroidUnitTestReport {
+    excludes += [
+
+    ]
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    jacoco.includeNoLocationClasses = true
+}
