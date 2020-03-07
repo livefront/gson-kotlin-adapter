@@ -1,15 +1,9 @@
-language: android
+language: java
 dist: trusty
 install:
   - bundle install
-android:
-  components:
-    - tools
-    - platform-tools
-    - build-tools-29.0.2
-    - android-29
 script:
-  - ./gradlew jacocoTestDebugUnitTestReport
+  - ./gradlew check jacocoTestReport
   - bundle exec danger
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -18,4 +12,3 @@ cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
-    - $HOME/.android/build-cache
