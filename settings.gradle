@@ -1,2 +1,2 @@
-include ':kraft'
-rootProject.name='kraft'
+include ':library'
+rootProject.name='gson kotlin adapter'

@@ -1,16 +1,14 @@
-package com.livefront.kraft
+package com.livefront.gsonkotlinadapter
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory
-import com.livefront.kraft.util.fromJson
+import com.livefront.gsonkotlinadapter.util.fromJson
 import io.mockk.every
 import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
