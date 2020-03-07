@@ -1,4 +1,4 @@
-package com.livefront.kraft
+package com.livefront.gsonkotlinadapter
 
 import com.google.gson.annotations.SerializedName
 

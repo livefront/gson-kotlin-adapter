@@ -1,4 +1,4 @@
-package com.livefront.kraft
+package com.livefront.gsonkotlinadapter
 
 val FROM_JSON_BOOLEAN_DATA_JSON: String = """
         {

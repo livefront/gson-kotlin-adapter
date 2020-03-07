@@ -1,4 +1,4 @@
-package com.livefront.kraft
+package com.livefront.gsonkotlinadapter
 
 import com.google.gson.Gson
 import com.google.gson.TypeAdapter
@@ -7,8 +7,8 @@ import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
-import com.livefront.kraft.util.getSerializedNames
-import com.livefront.kraft.util.toKClass
+import com.livefront.gsonkotlinadapter.util.getSerializedNames
+import com.livefront.gsonkotlinadapter.util.toKClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor

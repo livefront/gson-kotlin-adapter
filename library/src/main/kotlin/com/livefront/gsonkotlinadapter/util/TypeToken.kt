@@ -1,4 +1,4 @@
-package com.livefront.kraft.util
+package com.livefront.gsonkotlinadapter.util
 
 import com.google.gson.reflect.TypeToken
 import kotlin.reflect.KClass
