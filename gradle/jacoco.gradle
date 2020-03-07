@@ -1,16 +1,17 @@
-apply plugin: 'jacoco-android'
+apply plugin: 'jacoco'
 
-jacocoAndroidUnitTestReport {
-    excludes += [
-
-    ]
+jacocoTestReport {
+    dependsOn(test)
+    reports {
+        xml.enabled true
+        csv.enabled true
+    }
 }
 
 jacoco {
     toolVersion = "0.8.5"
 }
 
-tasks.withType(Test) {
-    useJUnitPlatform()
+test {
     jacoco.includeNoLocationClasses = true
 }
