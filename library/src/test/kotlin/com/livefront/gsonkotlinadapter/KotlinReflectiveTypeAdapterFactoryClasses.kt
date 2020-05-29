@@ -16,6 +16,10 @@ data class DoubleData(
     val missingDouble: Double?
 )
 
+data class GenericData<T>(
+    val value: T
+)
+
 data class IntData(
     val nonnullInt: Int,
     val nullableInt1: Int?,
@@ -77,7 +81,44 @@ data class StringDataWithDelegate(
     val lazyProperty: String by lazy { nullString ?: nonnullString }
 }
 
-data class TransientStringData(
-    @Transient val transientString: String = "foobar",
+class TransientStringData(
+    @Transient val transientString1: String = "foobar",
+    transientString2: String = "foobar",
     val string: String
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as TransientStringData
+        if (transientString1 != other.transientString1) return false
+        if (string != other.string) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = transientString1.hashCode()
+        result = 31 * result + string.hashCode()
+        return result
+    }
+}
+
+class InvalidTransientStringData(
+    @Transient val transientString1: String,
+    transientString2: String,
+    val string: String
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as TransientStringData
+        if (transientString1 != other.transientString1) return false
+        if (string != other.string) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = transientString1.hashCode()
+        result = 31 * result + string.hashCode()
+        return result
+    }
+}

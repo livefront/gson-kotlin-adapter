@@ -8,7 +8,9 @@ import io.mockk.every
 import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -64,6 +66,24 @@ class KotlinReflectiveTypeAdapterFactoryTests {
         // matches the pre-defined data.
         val expectedJson = TO_JSON_DOUBLE_DATA_JSON
         val actualJson = gson.toJson(doubleDataObject())
+        assertEquals(expectedJson, actualJson)
+    }
+
+    @Test
+    fun fromJson_genericData() {
+        // Should deserialize the JSON to a GenericData object and make sure it
+        // matches the pre-constructed data.
+        val expectedData = genericDataObject()
+        val actualData = gson.fromJson<GenericData<BooleanData>>(FROM_JSON_GENERIC_DATA_JSON)
+        assertEquals(expectedData, actualData)
+    }
+
+    @Test
+    fun toJson_genericData() {
+        // Should serialize the GenericData object to JSON and make sure it
+        // matches the pre-defined data.
+        val expectedJson = TO_JSON_GENERIC_DATA_JSON
+        val actualJson = gson.toJson(genericDataObject())
         assertEquals(expectedJson, actualJson)
     }
 
@@ -186,6 +206,23 @@ class KotlinReflectiveTypeAdapterFactoryTests {
         // matches the pre-constructed data.
         val expectedData = TO_JSON_STRING_DATA_JSON
         val actualData = gson.toJson(stringDataObject())
+        assertEquals(expectedData, actualData)
+    }
+
+    @Test
+    fun fromJson_stringData_invalidTransient() {
+        // Should attempt to deserialize the JSON to a InvalidTransientStringData object and fail
+        assertThrows(IllegalArgumentException::class.java) {
+            gson.fromJson<InvalidTransientStringData>(FROM_JSON_TRANSIENT_DATA_JSON)
+        }
+    }
+
+    @Test
+    fun toJson_stringData_invalidTransient() {
+        // Should serialize InvalidTransientStringData object to JSON and make sure it
+        // matches the pre-constructed data.
+        val expectedData = TO_JSON_TRANSIENT_DATA_JSON
+        val actualData = gson.toJson(toJsonInvalidTransientStringDataObject())
         assertEquals(expectedData, actualData)
     }
 

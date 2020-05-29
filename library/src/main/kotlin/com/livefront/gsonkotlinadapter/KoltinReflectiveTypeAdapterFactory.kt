@@ -9,13 +9,13 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.livefront.gsonkotlinadapter.util.getSerializedNames
+import com.livefront.gsonkotlinadapter.util.resolveParameterType
 import com.livefront.gsonkotlinadapter.util.toKClass
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaConstructor
-import kotlin.reflect.jvm.javaType
 
 /**
  * This [TypeAdapterFactory] constructs Kotlin classes using their default constructor, allowing
@@ -67,9 +67,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
         private val delegateAdapter: TypeAdapter<T> = gson.getDelegateAdapter(factory, type)
         private val innerAdapters: Map<KParameter, TypeAdapter<*>> = primaryConstructor
             .parameters
-            .associateWith { parameter: KParameter ->
-                gson.getAdapter(TypeToken.get(parameter.type.javaType))
-            }
+            .associateWith { gson.getAdapter(type.resolveParameterType(it)) }
 
         override fun write(writer: JsonWriter, value: T?) {
             if (value == null) {
