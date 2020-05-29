@@ -3,12 +3,14 @@ package com.livefront.gsonkotlinadapter
 import com.google.gson.Gson
 import com.google.gson.TypeAdapter
 import com.google.gson.TypeAdapterFactory
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.livefront.gsonkotlinadapter.util.getSerializedNames
 import com.livefront.gsonkotlinadapter.util.toKClass
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
@@ -26,18 +28,26 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
         type: TypeToken<T>
     ): TypeAdapter<T>? {
         val rawType: Class<in T> = type.rawType
+        if (rawType.isLocalClass) return null
         if (rawType.isInterface) return null
         if (rawType.isEnum) return null
+        if (rawType.isAnnotationPresent(JsonAdapter::class.java)) return null
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
-        return Adapter(this, gson, type)
+        val kotlinRawType: KClass<T> = type.toKClass()
+        require(!kotlinRawType.isAbstract) { "Cannot serialize abstract class ${rawType.name}" }
+        require(!kotlinRawType.isSealed) { "Cannot serialize sealed class ${rawType.name}" }
+        require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
+        kotlinRawType.primaryConstructor ?: return null
+        return Adapter(this, gson, type, kotlinRawType)
     }
 
     internal class Adapter<T : Any>(
         factory: TypeAdapterFactory,
         gson: Gson,
-        type: TypeToken<T>
+        type: TypeToken<T>,
+        kClass: KClass<T>
     ) : TypeAdapter<T>() {
-        private val primaryConstructor: KFunction<T> = type.toKClass().primaryConstructor!!
+        private val primaryConstructor: KFunction<T> = kClass.primaryConstructor!!
         private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
         private val constructorParameterNameMap: Map<KParameter, List<String>> = primaryConstructor
             .parameters
