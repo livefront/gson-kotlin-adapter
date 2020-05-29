@@ -39,12 +39,20 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
     ) : TypeAdapter<T>() {
         private val primaryConstructor: KFunction<T> = type.toKClass().primaryConstructor!!
         private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
-        private val constructorMap: Map<String, KParameter> = primaryConstructor
+        private val constructorParameterNameMap: Map<KParameter, List<String>> = primaryConstructor
             .parameters
-            .flatMap { parameter: KParameter ->
-                parameter.getSerializedNames(declaringClass).map { it to parameter }
-            }
-            .associate { it }
+            .map { it to it.getSerializedNames(declaringClass) }
+            .toMap()
+
+        private val invalidReadParameters: List<KParameter> = constructorParameterNameMap
+            .entries
+            .filter { (parameter, names) -> names.isEmpty() && !parameter.isOptional }
+            .map { it.key }
+
+        private val constructorMap: Map<String, KParameter> = constructorParameterNameMap
+            .entries
+            .flatMap { (parameter, names) -> names.map { it to parameter } }
+            .toMap()
 
         private val delegateAdapter: TypeAdapter<T> = gson.getDelegateAdapter(factory, type)
         private val innerAdapters: Map<KParameter, TypeAdapter<*>> = primaryConstructor
@@ -62,6 +70,12 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
         }
 
         override fun read(reader: JsonReader): T? {
+            require(invalidReadParameters.isEmpty()) {
+                val names: String = invalidReadParameters
+                    .filter { it.name != null }
+                    .joinToString(separator = ", ") { it.name!! }
+                "Transient constructor parameters must provide a default value. ($names)"
+            }
             if (reader.peek() == JsonToken.NULL) {
                 reader.nextNull()
                 return null

@@ -11,10 +11,14 @@ import kotlin.reflect.KParameter
  */
 internal fun <T : Any> KParameter.getSerializedNames(declaringClass: Class<T>): List<String> {
     val parameterName: String = name ?: return emptyList()
-    val declaredField: Field = declaringClass.getDeclaredField(parameterName)
-    val serializedName: SerializedName? = declaredField.getAnnotation(SerializedName::class.java)
+    val declaredField: Field? = try {
+        declaringClass.getDeclaredField(parameterName)
+    } catch (e: NoSuchFieldException) {
+        null
+    }
+    val serializedName: SerializedName? = declaredField?.getAnnotation(SerializedName::class.java)
     return when {
-        Modifier.isTransient(declaredField.modifiers) -> emptyList()
+        declaredField == null || Modifier.isTransient(declaredField.modifiers) -> emptyList()
         serializedName != null -> listOf(serializedName.value) + serializedName.alternate
         else -> listOf(parameterName)
     }
