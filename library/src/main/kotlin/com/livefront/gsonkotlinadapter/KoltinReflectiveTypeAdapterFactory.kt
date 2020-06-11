@@ -3,17 +3,19 @@ package com.livefront.gsonkotlinadapter
 import com.google.gson.Gson
 import com.google.gson.TypeAdapter
 import com.google.gson.TypeAdapterFactory
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.livefront.gsonkotlinadapter.util.getSerializedNames
+import com.livefront.gsonkotlinadapter.util.resolveParameterType
 import com.livefront.gsonkotlinadapter.util.toKClass
+import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaConstructor
-import kotlin.reflect.jvm.javaType
 
 /**
  * This [TypeAdapterFactory] constructs Kotlin classes using their default constructor, allowing
@@ -26,32 +28,46 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
         type: TypeToken<T>
     ): TypeAdapter<T>? {
         val rawType: Class<in T> = type.rawType
+        if (rawType.isLocalClass) return null
         if (rawType.isInterface) return null
         if (rawType.isEnum) return null
+        if (rawType.isAnnotationPresent(JsonAdapter::class.java)) return null
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
-        return Adapter(this, gson, type)
+        val kotlinRawType: KClass<T> = type.toKClass()
+        require(!kotlinRawType.isAbstract) { "Cannot serialize abstract class ${rawType.name}" }
+        require(!kotlinRawType.isSealed) { "Cannot serialize sealed class ${rawType.name}" }
+        require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
+        kotlinRawType.primaryConstructor ?: return null
+        return Adapter(this, gson, type, kotlinRawType)
     }
 
     internal class Adapter<T : Any>(
         factory: TypeAdapterFactory,
         gson: Gson,
-        type: TypeToken<T>
+        type: TypeToken<T>,
+        kClass: KClass<T>
     ) : TypeAdapter<T>() {
-        private val primaryConstructor: KFunction<T> = type.toKClass().primaryConstructor!!
+        private val primaryConstructor: KFunction<T> = kClass.primaryConstructor!!
         private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
-        private val constructorMap: Map<String, KParameter> = primaryConstructor
+        private val constructorParameterNameMap: Map<KParameter, List<String>> = primaryConstructor
             .parameters
-            .flatMap { parameter: KParameter ->
-                parameter.getSerializedNames(declaringClass).map { it to parameter }
-            }
-            .associate { it }
+            .map { it to it.getSerializedNames(declaringClass) }
+            .toMap()
+
+        private val invalidReadParameters: List<KParameter> = constructorParameterNameMap
+            .entries
+            .filter { (parameter, names) -> names.isEmpty() && !parameter.isOptional }
+            .map { it.key }
+
+        private val constructorMap: Map<String, KParameter> = constructorParameterNameMap
+            .entries
+            .flatMap { (parameter, names) -> names.map { it to parameter } }
+            .toMap()
 
         private val delegateAdapter: TypeAdapter<T> = gson.getDelegateAdapter(factory, type)
         private val innerAdapters: Map<KParameter, TypeAdapter<*>> = primaryConstructor
             .parameters
-            .associateWith { parameter: KParameter ->
-                gson.getAdapter(TypeToken.get(parameter.type.javaType))
-            }
+            .associateWith { gson.getAdapter(type.resolveParameterType(it)) }
 
         override fun write(writer: JsonWriter, value: T?) {
             if (value == null) {
@@ -62,6 +78,12 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
         }
 
         override fun read(reader: JsonReader): T? {
+            require(invalidReadParameters.isEmpty()) {
+                val names: String = invalidReadParameters
+                    .filter { it.name != null }
+                    .joinToString(separator = ", ") { it.name!! }
+                "Transient constructor parameters must provide a default value. ($names)"
+            }
             if (reader.peek() == JsonToken.NULL) {
                 reader.nextNull()
                 return null

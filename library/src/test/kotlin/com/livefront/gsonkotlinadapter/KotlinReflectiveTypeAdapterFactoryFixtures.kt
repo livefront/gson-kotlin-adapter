@@ -44,6 +44,33 @@ fun doubleDataObject() = DoubleData(
     missingDouble = null
 )
 
+val FROM_JSON_GENERIC_DATA_JSON: String = """
+        {
+          "value": {
+            "nonnullBoolean": true,
+            "nullableBoolean1": false
+          }
+        }
+        """.trimIndent()
+
+val TO_JSON_GENERIC_DATA_JSON: String = """
+        {
+          "value": {
+            "nonnullBoolean": true,
+            "nullableBoolean1": false
+          }
+        }
+        """.trimIndent()
+
+fun genericDataObject(): GenericData<BooleanData> = GenericData(
+    value = BooleanData(
+        nonnullBoolean = true,
+        nullableBoolean1 = false,
+        nullableBoolean2 = null,
+        missingBoolean = null
+    )
+)
+
 val FROM_JSON_INT_DATA_JSON: String = """
         {
           "nonnullInt": 1,
@@ -234,7 +261,7 @@ fun stringDataWithDelegateObject() = StringDataWithDelegate(
 
 val FROM_JSON_TRANSIENT_DATA_JSON: String = """
         {
-          "transientString": "foo",
+          "transientString1": "foo",
           "string": "bar"
         }
         """.trimIndent()
@@ -250,6 +277,13 @@ val TO_JSON_TRANSIENT_DATA_JSON: String = """
         """.trimIndent()
 
 fun toJsonTransientStringDataObject() = TransientStringData(
-    transientString = "foo",
+    transientString1 = "foo",
+    transientString2 = "foo",
+    string = "bar"
+)
+
+fun toJsonInvalidTransientStringDataObject() = InvalidTransientStringData(
+    transientString1 = "foo",
+    transientString2 = "foo",
     string = "bar"
 )
