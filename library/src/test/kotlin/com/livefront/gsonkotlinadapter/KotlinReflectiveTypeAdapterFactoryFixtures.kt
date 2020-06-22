@@ -287,3 +287,24 @@ fun toJsonInvalidTransientStringDataObject() = InvalidTransientStringData(
     transientString2 = "foo",
     string = "bar"
 )
+
+const val FROM_JSON_DEFAULT_PRIMITIVE_DATA_JSON = """{}"""
+
+fun fromJsonDefaultPrimitiveDataObject() = DefaultPrimitiveData(
+    booleanData = false,
+    nullableBooleanData = null,
+    byteData = 0,
+    nullableByteData = null,
+    shortData = 0,
+    nullableShortData = null,
+    intData = 0,
+    nullableIntData = null,
+    longData = 0L,
+    nullableLongData = null,
+    floatData = 0f,
+    nullableFloatData = null,
+    doubleData = 0.0,
+    nullableDoubleData = null,
+    char = '\u0000',
+    nullableChar = null
+)

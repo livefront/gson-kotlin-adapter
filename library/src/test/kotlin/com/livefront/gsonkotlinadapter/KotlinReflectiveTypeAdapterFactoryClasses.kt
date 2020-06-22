@@ -9,6 +9,25 @@ data class BooleanData(
     val missingBoolean: Boolean?
 )
 
+data class DefaultPrimitiveData(
+    val booleanData: Boolean,
+    val nullableBooleanData: Boolean?,
+    val byteData: Byte,
+    val nullableByteData: Byte?,
+    val shortData: Short,
+    val nullableShortData: Short?,
+    val intData: Int,
+    val nullableIntData: Int?,
+    val longData: Long,
+    val nullableLongData: Long?,
+    val floatData: Float,
+    val nullableFloatData: Float?,
+    val doubleData: Double,
+    val nullableDoubleData: Double?,
+    val char: Char,
+    val nullableChar: Char?
+)
+
 data class DoubleData(
     val nonnullDouble: Double,
     val nullableDouble1: Double?,

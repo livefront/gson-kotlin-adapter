@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import com.livefront.gsonkotlinadapter.util.defaultValue
 import com.livefront.gsonkotlinadapter.util.getSerializedNames
 import com.livefront.gsonkotlinadapter.util.resolveParameterType
 import com.livefront.gsonkotlinadapter.util.toKClass
@@ -22,7 +23,9 @@ import kotlin.reflect.jvm.javaConstructor
  * for properties to be initialized properly. This ensures that the JSON fulfills the nullability
  * contract of the model and calls the class's init block.
  */
-class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFactory {
+class KotlinReflectiveTypeAdapterFactory private constructor(
+    private val enableDefaultPrimitiveValues: Boolean
+) : TypeAdapterFactory {
     override fun <T : Any> create(
         gson: Gson,
         type: TypeToken<T>
@@ -38,17 +41,31 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
         require(!kotlinRawType.isSealed) { "Cannot serialize sealed class ${rawType.name}" }
         require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
         kotlinRawType.primaryConstructor ?: return null
-        return Adapter(this, gson, type, kotlinRawType)
+        return Adapter(this, gson, type, kotlinRawType, enableDefaultPrimitiveValues)
     }
 
     internal class Adapter<T : Any>(
         factory: TypeAdapterFactory,
         gson: Gson,
         type: TypeToken<T>,
-        kClass: KClass<T>
+        kClass: KClass<T>,
+        private val enableDefaultPrimitiveValues: Boolean
     ) : TypeAdapter<T>() {
         private val primaryConstructor: KFunction<T> = kClass.primaryConstructor!!
         private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
+
+        /**
+         * Provides a mapping between parameter and automatic type-specific defaults (i.e. null for
+         * objects, 0 for numeric primitives, '\u0000' for chars, false for booleans). If the
+         * parameter [KParameter.isOptional] then it will not exist in this map and the
+         * manually-supplied default value will be used when the constructor is called. The
+         * contents of this map may vary based on the [enableDefaultPrimitiveValues] property.
+         */
+        private val constructorParameterDefaultsMap: Map<KParameter, Any?> = primaryConstructor
+            .parameters
+            .filterNot(KParameter::isOptional)
+            .associateWith { if (enableDefaultPrimitiveValues) it.defaultValue else null }
+
         private val constructorParameterNameMap: Map<KParameter, List<String>> = primaryConstructor
             .parameters
             .map { it to it.getSerializedNames(declaringClass) }
@@ -89,7 +106,6 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
                 return null
             }
             val constructorParams: MutableMap<KParameter, Any?> = mutableMapOf()
-            constructorMap.values.forEach { if (!it.isOptional) constructorParams[it] = null }
 
             reader.beginObject()
             while (reader.hasNext()) {
@@ -107,6 +123,10 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
             }
             reader.endObject()
 
+            // Add all stored default values if the JSON did not include it
+            constructorParameterDefaultsMap.map { (parameter, data) ->
+                constructorParams.putIfAbsent(parameter, data)
+            }
             return primaryConstructor.callBy(constructorParams)
         }
     }
@@ -121,8 +141,14 @@ class KotlinReflectiveTypeAdapterFactory private constructor() : TypeAdapterFact
          * Returns an new instance of [KotlinReflectiveTypeAdapterFactory] which constructs classes
          * using the default constructor, allowing for properties to initialized the properly.
          * This ensures that the JSON fulfills the nullability contract of the model and calls the
-         * class's init block.
+         * class's init block. Setting the [enableDefaultPrimitiveValues] to `true` will allow
+         * nonnull primitive values to use default values when manually-supplied default values are
+         * not present and a value is not present in the JSON.
          */
-        fun create(): KotlinReflectiveTypeAdapterFactory = KotlinReflectiveTypeAdapterFactory()
+        fun create(
+            enableDefaultPrimitiveValues: Boolean = false
+        ): KotlinReflectiveTypeAdapterFactory = KotlinReflectiveTypeAdapterFactory(
+            enableDefaultPrimitiveValues
+        )
     }
 }

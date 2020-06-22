@@ -17,7 +17,12 @@ import org.junit.jupiter.api.Test
 class KotlinReflectiveTypeAdapterFactoryTests {
     private val gson: Gson = GsonBuilder()
         .setPrettyPrinting()
-        .registerTypeAdapterFactory(KotlinReflectiveTypeAdapterFactory.create())
+        .registerTypeAdapterFactory(KotlinReflectiveTypeAdapterFactory.create(false))
+        .create()
+
+    private val gsonWithDefaultPrimitiveValuesEnabled: Gson = GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeAdapterFactory(KotlinReflectiveTypeAdapterFactory.create(true))
         .create()
 
     @BeforeEach
@@ -49,6 +54,25 @@ class KotlinReflectiveTypeAdapterFactoryTests {
         val expectedJson = TO_JSON_BOOLEAN_DATA_JSON
         val actualJson = gson.toJson(booleanDataObject())
         assertEquals(expectedJson, actualJson)
+    }
+
+    @Test
+    fun fromJson_defaultPrimitiveData_primitiveValuesDisabled() {
+        // Should attempt to deserialize the JSON to a DefaultPrimitiveData object and fail.
+        assertThrows(IllegalArgumentException::class.java) {
+            gson.fromJson<DefaultPrimitiveData>(FROM_JSON_DEFAULT_PRIMITIVE_DATA_JSON)
+        }
+    }
+
+    @Test
+    fun fromJson_defaultPrimitiveData_primitiveValuesEnabled() {
+        // Should deserialize the JSON to a DefaultPrimitiveData object and make sure it matches
+        // the pre-constructed data and verify that default values were used.
+        val expectedData = fromJsonDefaultPrimitiveDataObject()
+        val actualData = gsonWithDefaultPrimitiveValuesEnabled.fromJson<DefaultPrimitiveData>(
+            FROM_JSON_DEFAULT_PRIMITIVE_DATA_JSON
+        )
+        assertEquals(expectedData, actualData)
     }
 
     @Test
@@ -196,7 +220,6 @@ class KotlinReflectiveTypeAdapterFactoryTests {
         // matches the pre-constructed data.
         val expectedData = stringDataObject()
         val actualData = gson.fromJson<StringData>(FROM_JSON_STRING_DATA_JSON)
-        println(actualData)
         assertEquals(expectedData, actualData)
     }
 
