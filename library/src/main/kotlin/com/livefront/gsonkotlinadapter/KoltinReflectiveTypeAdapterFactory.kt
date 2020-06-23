@@ -16,6 +16,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaConstructor
 
 /**
@@ -51,7 +52,10 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         kClass: KClass<T>,
         private val enableDefaultPrimitiveValues: Boolean
     ) : TypeAdapter<T>() {
-        private val primaryConstructor: KFunction<T> = kClass.primaryConstructor!!
+        private val primaryConstructor: KFunction<T> = kClass
+            .primaryConstructor!!
+            .apply { isAccessible = true }
+
         private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
 
         /**
