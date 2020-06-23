@@ -1,4 +1,5 @@
 apply plugin: 'kotlin'
+apply plugin: 'maven'
 
 apply from: rootProject.file("gradle/jacoco.gradle")
 
