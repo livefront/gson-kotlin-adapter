@@ -92,8 +92,9 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             .toMap()
 
         private val delegateAdapter: TypeAdapter<T> = gson.getDelegateAdapter(factory, type)
-        private val innerAdapters: Map<KParameter, TypeAdapter<*>> = primaryConstructor
-            .parameters
+        private val innerAdapters: Map<KParameter, TypeAdapter<*>> = constructorParameterNameMap
+            .filterNot { (_, names) -> names.isEmpty() }
+            .keys
             .associateWith { gson.getAdapter(type.resolveParameterType(it)) }
 
         override fun write(writer: JsonWriter, value: T?) {
