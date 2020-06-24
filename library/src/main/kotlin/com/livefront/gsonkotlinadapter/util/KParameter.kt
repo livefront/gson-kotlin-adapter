@@ -30,6 +30,22 @@ internal val KParameter.defaultValue: Any?
     }
 
 /**
+ * Returns the `true` if this [KParameter] is a primitive, `false` otherwise.
+ */
+internal val KParameter.isPrimitive: Boolean
+    get() = when (type.classifier as? KClass<*>) {
+        Boolean::class,
+        Byte::class,
+        Char::class,
+        Double::class,
+        Float::class,
+        Integer::class,
+        Long::class,
+        Short::class -> true
+        else -> false
+    }
+
+/**
  * Retrieves all possible names for the [KParameter] based on the name of the property, the
  * [SerializedName] annotation, and whether it's [Transient] or not.
  */

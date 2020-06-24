@@ -10,6 +10,7 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.livefront.gsonkotlinadapter.util.defaultValue
 import com.livefront.gsonkotlinadapter.util.getSerializedNames
+import com.livefront.gsonkotlinadapter.util.isPrimitive
 import com.livefront.gsonkotlinadapter.util.resolveParameterType
 import com.livefront.gsonkotlinadapter.util.toKClass
 import kotlin.reflect.KClass
@@ -75,10 +76,15 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             .map { it to it.getSerializedNames(declaringClass) }
             .toMap()
 
-        private val invalidReadParameters: List<KParameter> = constructorParameterNameMap
-            .entries
-            .filter { (parameter, names) -> names.isEmpty() && !parameter.isOptional }
-            .map { it.key }
+        private val invalidReadParameters: Set<KParameter> = constructorParameterNameMap
+            .filter { (parameter, names) ->
+                if (enableDefaultPrimitiveValues && parameter.isPrimitive) {
+                    false
+                } else {
+                    names.isEmpty() && !parameter.isOptional
+                }
+            }
+            .keys
 
         private val constructorMap: Map<String, KParameter> = constructorParameterNameMap
             .entries
