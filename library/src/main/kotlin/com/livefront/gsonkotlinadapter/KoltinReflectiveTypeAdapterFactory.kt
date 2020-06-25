@@ -10,12 +10,14 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import com.livefront.gsonkotlinadapter.util.defaultValue
 import com.livefront.gsonkotlinadapter.util.getSerializedNames
+import com.livefront.gsonkotlinadapter.util.isPrimitive
 import com.livefront.gsonkotlinadapter.util.resolveParameterType
 import com.livefront.gsonkotlinadapter.util.toKClass
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaConstructor
 
 /**
@@ -37,8 +39,6 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         if (rawType.isAnnotationPresent(JsonAdapter::class.java)) return null
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
         val kotlinRawType: KClass<T> = type.toKClass()
-        require(!kotlinRawType.isAbstract) { "Cannot serialize abstract class ${rawType.name}" }
-        require(!kotlinRawType.isSealed) { "Cannot serialize sealed class ${rawType.name}" }
         require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
         kotlinRawType.primaryConstructor ?: return null
         return Adapter(this, gson, type, kotlinRawType, enableDefaultPrimitiveValues)
@@ -48,10 +48,13 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         factory: TypeAdapterFactory,
         gson: Gson,
         type: TypeToken<T>,
-        kClass: KClass<T>,
+        private val kClass: KClass<T>,
         private val enableDefaultPrimitiveValues: Boolean
     ) : TypeAdapter<T>() {
-        private val primaryConstructor: KFunction<T> = kClass.primaryConstructor!!
+        private val primaryConstructor: KFunction<T> = kClass
+            .primaryConstructor!!
+            .apply { isAccessible = true }
+
         private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
 
         /**
@@ -71,10 +74,15 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             .map { it to it.getSerializedNames(declaringClass) }
             .toMap()
 
-        private val invalidReadParameters: List<KParameter> = constructorParameterNameMap
-            .entries
-            .filter { (parameter, names) -> names.isEmpty() && !parameter.isOptional }
-            .map { it.key }
+        private val invalidReadParameters: Set<KParameter> = constructorParameterNameMap
+            .filter { (parameter, names) ->
+                if (enableDefaultPrimitiveValues && parameter.isPrimitive) {
+                    false
+                } else {
+                    names.isEmpty() && !parameter.isOptional
+                }
+            }
+            .keys
 
         private val constructorMap: Map<String, KParameter> = constructorParameterNameMap
             .entries
@@ -82,8 +90,9 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             .toMap()
 
         private val delegateAdapter: TypeAdapter<T> = gson.getDelegateAdapter(factory, type)
-        private val innerAdapters: Map<KParameter, TypeAdapter<*>> = primaryConstructor
-            .parameters
+        private val innerAdapters: Map<KParameter, TypeAdapter<*>> = constructorParameterNameMap
+            .filterNot { (_, names) -> names.isEmpty() }
+            .keys
             .associateWith { gson.getAdapter(type.resolveParameterType(it)) }
 
         override fun write(writer: JsonWriter, value: T?) {
@@ -95,6 +104,8 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         }
 
         override fun read(reader: JsonReader): T? {
+            require(!kClass.isAbstract) { "Cannot deserialize abstract class '${kClass.simpleName}'" }
+            require(!kClass.isSealed) { "Cannot deserialize sealed class '${kClass.simpleName}'" }
             require(invalidReadParameters.isEmpty()) {
                 val names: String = invalidReadParameters
                     .filter { it.name != null }
