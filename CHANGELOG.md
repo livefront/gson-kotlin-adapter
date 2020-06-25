@@ -1,6 +1,8 @@
 Change Log
 ==========
 
+# 0.3.0
+
 # 0.2.0
 Allow use to optionally use default primitive values when missing from JSON
 
