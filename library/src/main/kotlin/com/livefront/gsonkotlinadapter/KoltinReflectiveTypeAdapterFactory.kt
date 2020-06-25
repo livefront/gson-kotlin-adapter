@@ -39,8 +39,6 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         if (rawType.isAnnotationPresent(JsonAdapter::class.java)) return null
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
         val kotlinRawType: KClass<T> = type.toKClass()
-        require(!kotlinRawType.isAbstract) { "Cannot serialize abstract class ${rawType.name}" }
-        require(!kotlinRawType.isSealed) { "Cannot serialize sealed class ${rawType.name}" }
         require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
         kotlinRawType.primaryConstructor ?: return null
         return Adapter(this, gson, type, kotlinRawType, enableDefaultPrimitiveValues)
@@ -50,7 +48,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         factory: TypeAdapterFactory,
         gson: Gson,
         type: TypeToken<T>,
-        kClass: KClass<T>,
+        private val kClass: KClass<T>,
         private val enableDefaultPrimitiveValues: Boolean
     ) : TypeAdapter<T>() {
         private val primaryConstructor: KFunction<T> = kClass
@@ -106,6 +104,8 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         }
 
         override fun read(reader: JsonReader): T? {
+            require(!kClass.isAbstract) { "Cannot deserialize abstract class '${kClass.simpleName}'" }
+            require(!kClass.isSealed) { "Cannot deserialize sealed class '${kClass.simpleName}'" }
             require(invalidReadParameters.isEmpty()) {
                 val names: String = invalidReadParameters
                     .filter { it.name != null }
