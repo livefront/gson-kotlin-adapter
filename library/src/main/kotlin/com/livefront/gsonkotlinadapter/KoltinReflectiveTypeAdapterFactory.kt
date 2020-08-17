@@ -40,61 +40,62 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
         val kotlinRawType: KClass<T> = type.toKClass()
         require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
-        kotlinRawType.primaryConstructor ?: return null
-        return Adapter(this, gson, type, kotlinRawType, enableDefaultPrimitiveValues)
+
+        val primaryConstructor: KFunction<T> = kotlinRawType
+            .primaryConstructor
+            ?.apply { isAccessible = true }
+            ?: return null
+        val declaringClass: Class<T> = primaryConstructor.javaConstructor!!.declaringClass!!
+        val innerAdapters: MutableMap<KParameter, TypeAdapter<*>> = mutableMapOf()
+        val constructorParameterDefaultsMap: MutableMap<KParameter, Any?> = mutableMapOf()
+        val invalidReadParameters: MutableSet<KParameter> = mutableSetOf()
+        val constructorMap: MutableMap<String, KParameter> = mutableMapOf()
+
+        primaryConstructor.parameters.forEach { parameter: KParameter ->
+            val names: List<String> = parameter.getSerializedNames(declaringClass)
+            if (names.isNotEmpty()) {
+                // Retrieve adapters for serializable inner properties
+                innerAdapters[parameter] = gson.getAdapter(type.resolveParameterType(parameter))
+            }
+            if (!parameter.isOptional) {
+                // Create a map containing all default parameters where applicable
+                // This can include default values for primitives if it is enabled
+                constructorParameterDefaultsMap[parameter] = if (enableDefaultPrimitiveValues) {
+                    parameter.defaultValue
+                } else {
+                    null
+                }
+                if (names.isEmpty() && (!parameter.isPrimitive || !enableDefaultPrimitiveValues)) {
+                    // Maintain a list of parameters that will cause the object construction
+                    // to fail during deserialization. We do not fail immediately because
+                    // serialization is still possible
+                    invalidReadParameters += parameter
+                }
+            }
+            // Associate the parameter with the possible names
+            names.forEach { name: String -> constructorMap[name] = parameter }
+        }
+
+        return Adapter(
+            delegateAdapter = gson.getDelegateAdapter(this, type),
+            innerAdapters = innerAdapters,
+            kClass = kotlinRawType,
+            primaryConstructor = primaryConstructor,
+            constructorParameterDefaultsMap = constructorParameterDefaultsMap,
+            invalidReadParameters = invalidReadParameters,
+            constructorMap = constructorMap
+        )
     }
 
     internal class Adapter<T : Any>(
-        factory: TypeAdapterFactory,
-        gson: Gson,
-        type: TypeToken<T>,
+        private val delegateAdapter: TypeAdapter<T>,
+        private val innerAdapters: Map<KParameter, TypeAdapter<*>>,
         private val kClass: KClass<T>,
-        private val enableDefaultPrimitiveValues: Boolean
+        private val primaryConstructor: KFunction<T>,
+        private val constructorParameterDefaultsMap: Map<KParameter, Any?>,
+        private val invalidReadParameters: Set<KParameter>,
+        private val constructorMap: Map<String, KParameter>
     ) : TypeAdapter<T>() {
-        private val primaryConstructor: KFunction<T> = kClass
-            .primaryConstructor!!
-            .apply { isAccessible = true }
-
-        private val declaringClass: Class<T> = primaryConstructor.javaConstructor?.declaringClass!!
-
-        /**
-         * Provides a mapping between parameter and automatic type-specific defaults (i.e. null for
-         * objects, 0 for numeric primitives, '\u0000' for chars, false for booleans). If the
-         * parameter [KParameter.isOptional] then it will not exist in this map and the
-         * manually-supplied default value will be used when the constructor is called. The
-         * contents of this map may vary based on the [enableDefaultPrimitiveValues] property.
-         */
-        private val constructorParameterDefaultsMap: Map<KParameter, Any?> = primaryConstructor
-            .parameters
-            .filterNot(KParameter::isOptional)
-            .associateWith { if (enableDefaultPrimitiveValues) it.defaultValue else null }
-
-        private val constructorParameterNameMap: Map<KParameter, List<String>> = primaryConstructor
-            .parameters
-            .map { it to it.getSerializedNames(declaringClass) }
-            .toMap()
-
-        private val invalidReadParameters: Set<KParameter> = constructorParameterNameMap
-            .filter { (parameter, names) ->
-                if (enableDefaultPrimitiveValues && parameter.isPrimitive) {
-                    false
-                } else {
-                    names.isEmpty() && !parameter.isOptional
-                }
-            }
-            .keys
-
-        private val constructorMap: Map<String, KParameter> = constructorParameterNameMap
-            .entries
-            .flatMap { (parameter, names) -> names.map { it to parameter } }
-            .toMap()
-
-        private val delegateAdapter: TypeAdapter<T> = gson.getDelegateAdapter(factory, type)
-        private val innerAdapters: Map<KParameter, TypeAdapter<*>> = constructorParameterNameMap
-            .filterNot { (_, names) -> names.isEmpty() }
-            .keys
-            .associateWith { gson.getAdapter(type.resolveParameterType(it)) }
-
         override fun write(writer: JsonWriter, value: T?) {
             if (value == null) {
                 writer.nullValue()
@@ -127,7 +128,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
                             innerAdapters.getValue(parameter).read(reader)
                         )
                         require(replacedValue == null) {
-                            "${declaringClass.simpleName} declares multiple JSON fields named ${parameter.name}"
+                            "${kClass.simpleName} declares multiple JSON fields named ${parameter.name}"
                         }
                     }
                     ?: reader.skipValue()
@@ -135,7 +136,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             reader.endObject()
 
             // Add all stored default values if the JSON did not include it
-            constructorParameterDefaultsMap.map { (parameter, data) ->
+            constructorParameterDefaultsMap.forEach { (parameter, data) ->
                 constructorParams.putIfAbsent(parameter, data)
             }
             return primaryConstructor.callBy(constructorParams)

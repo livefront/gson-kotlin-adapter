@@ -11,6 +11,18 @@ This tool is currently in beta, while any issues are worked through. Please feel
 
 This is intended to be used as a stop-gap for teams who are using Kotlin in a legacy system that started out in Java. New projects or projects that have the ability to migrate to newer tools made for Kotlin from the ground up should do so. [Kotlin Serialization](https://github.com/Kotlin/kotlinx.serialization) and [Moshi](https://github.com/square/moshi) are great examples of these tools.
 
+## Disclaimer
+This library uses the Kotlin Reflection library and can incur significant performance losses compared to the base Gson adapter, which uses Java Reflection. Both adapter construction and JSON deserialization will be adversely affected by the performance loss. It is strongly suggested that profiling be done in your own application when first including this library.
+
+Both [Kotlin Serialization](https://github.com/Kotlin/kotlinx.serialization) and [Moshi](https://github.com/square/moshi) support code generation and are much more efficient for this reason.
+
+The adapter is designed to front-load as much of the heavy workload as possible, so using cache warming techniques can make significant improvements. A `Gson.warmClassCaches` method has been provided that may be run on a background thread at startup to reduce much of that initial cost.
+```kotlin
+    fun Gson.warmClassCaches(vararg classes: Class<*>) {
+        classes.forEach { getAdapter(it) }
+    }
+```
+
 <a name="install"></a>
 ## Install
 `Gson Kotlin Adapter` can be installed via gradle:
