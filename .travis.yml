@@ -1,6 +1,8 @@
 language: java
 dist: trusty
 install:
+  - rvm install "ruby-2.7.2"
+  - rvm use "ruby-2.7.2"
   - bundle install
 script:
   - ./gradlew check jacocoTestReport
