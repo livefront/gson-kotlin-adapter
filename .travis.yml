@@ -1,5 +1,7 @@
 language: java
 dist: trusty
+rvm:
+  - 2.7.2
 install:
   - bundle install
 script:
