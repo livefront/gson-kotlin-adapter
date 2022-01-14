@@ -1,4 +1,5 @@
-![CI-Status](https://travis-ci.com/livefront/gson-kotlin-adapter.svg?token=yms391pwqdLJQXz4xfsz&branch=master) [![Release](https://jitpack.io/v/Livefront/gson-kotlin-adapter.svg)](https://jitpack.io/#Livefront/gson-kotlin-adapter)
+![CI-Status](https://github.com/livefront/gson-kotlin-adapter/workflows/CI/badge.svg)
+[![Release](https://jitpack.io/v/Livefront/gson-kotlin-adapter.svg)](https://jitpack.io/#Livefront/gson-kotlin-adapter)
 
 # Gson Kotlin Adapter (Beta)
 A Kotlin library for deserializing JSON to Kotlin models using the primary constructor.
