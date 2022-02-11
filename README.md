@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.livefront:gson-kotlin-adapter:0.1.0'
+    implementation 'com.github.Livefront:gson-kotlin-adapter:0.2.0'
 }
 ```
 
