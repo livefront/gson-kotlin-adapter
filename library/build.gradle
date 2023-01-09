@@ -6,6 +6,10 @@ archivesBaseName = 'gson-kotlin-adapter'
 group = "com.livefront.gsonkotlinadapter"
 version = "0.2.0"
 
+buildscript {
+    // Just need to define this
+}
+
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compileOnly "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
