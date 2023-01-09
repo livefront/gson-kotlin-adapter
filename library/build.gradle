@@ -4,9 +4,8 @@ buildscript {
 
 plugins {
     id "org.jetbrains.kotlin.jvm"
+    id "org.jetbrains.kotlinx.kover"
 }
-
-apply from: rootProject.file("gradle/jacoco.gradle")
 
 archivesBaseName = 'gson-kotlin-adapter'
 group = "com.livefront.gsonkotlinadapter"
