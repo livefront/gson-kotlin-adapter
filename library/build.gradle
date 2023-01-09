@@ -1,14 +1,16 @@
-apply plugin: 'kotlin'
+buildscript {
+    // Just need to define this
+}
+
+plugins {
+    id "org.jetbrains.kotlin.jvm"
+}
 
 apply from: rootProject.file("gradle/jacoco.gradle")
 
 archivesBaseName = 'gson-kotlin-adapter'
 group = "com.livefront.gsonkotlinadapter"
 version = "0.2.0"
-
-buildscript {
-    // Just need to define this
-}
 
 dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
