@@ -6,6 +6,7 @@ object Versions {
     object JetBrains {
         // This needs to be kept in sync with the build.gradle.kts file for 'buildSrc'.
         const val kotlin = "1.7.10"
+        const val kover = "0.6.1"
     }
 
     object Junit {

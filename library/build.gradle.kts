@@ -4,9 +4,8 @@ buildscript {
 
 plugins {
     kotlin("jvm")
+    id("org.jetbrains.kotlinx.kover") version Versions.JetBrains.kover
 }
-
-apply(from = rootProject.file("gradle/jacoco.gradle"))
 
 base {
     archivesName.set("gson-kotlin-adapter")
