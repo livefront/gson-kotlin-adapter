@@ -1,6 +1,5 @@
 apply plugin: 'kotlin'
-
-apply from: rootProject.file("gradle/jacoco.gradle")
+apply plugin: 'kover'
 
 archivesBaseName = 'gson-kotlin-adapter'
 group = "com.livefront.gsonkotlinadapter"
