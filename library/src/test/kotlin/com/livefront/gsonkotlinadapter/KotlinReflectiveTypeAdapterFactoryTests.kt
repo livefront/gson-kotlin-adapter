@@ -4,9 +4,9 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory
 import com.livefront.gsonkotlinadapter.util.fromJson
-import io.mockk.every
 import io.mockk.mockkConstructor
 import io.mockk.unmockkAll
+import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -28,13 +28,13 @@ class KotlinReflectiveTypeAdapterFactoryTests {
     @BeforeEach
     fun setup() {
         mockkConstructor(ReflectiveTypeAdapterFactory.Adapter::class)
-        every {
-            anyConstructed<ReflectiveTypeAdapterFactory.Adapter<*>>().read(any())
-        } throws RuntimeException("ReflectiveTypeAdapterFactory.Adapter is being used!")
     }
 
     @AfterEach
     fun teardown() {
+        verify(exactly = 0) {
+            anyConstructed<ReflectiveTypeAdapterFactory.Adapter<*>>().read(any())
+        }
         unmockkAll()
     }
 
