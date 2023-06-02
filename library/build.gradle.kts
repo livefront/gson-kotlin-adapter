@@ -14,9 +14,9 @@ base {
 }
 
 dependencies {
-    compileOnly(kotlin(module = "stdlib", version = Versions.JetBrains.kotlin))
-    compileOnly(kotlin(module = "reflect", version = Versions.JetBrains.kotlin))
-    compileOnly("com.google.code.gson:gson:${Versions.Google.gson}")
+    implementation(kotlin(module = "stdlib", version = Versions.JetBrains.kotlin))
+    implementation(kotlin(module = "reflect", version = Versions.JetBrains.kotlin))
+    implementation("com.google.code.gson:gson:${Versions.Google.gson}")
 
     testImplementation("com.google.code.gson:gson:${Versions.Google.gson}")
     testImplementation("org.junit.jupiter:junit-jupiter:${Versions.Junit.jupiter}")
