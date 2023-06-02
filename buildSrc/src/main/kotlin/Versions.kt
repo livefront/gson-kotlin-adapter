@@ -1,6 +1,6 @@
 object Versions {
     object Google {
-        const val gson = "2.8.9"
+        const val gson = "2.10.1"
     }
 
     object JetBrains {

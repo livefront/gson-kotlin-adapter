@@ -33,7 +33,7 @@ class KotlinReflectiveTypeAdapterFactoryTests {
     @AfterEach
     fun teardown() {
         verify(exactly = 0) {
-            anyConstructed<ReflectiveTypeAdapterFactory.Adapter<*>>().read(any())
+            anyConstructed<ReflectiveTypeAdapterFactory.Adapter<*, *>>().read(any())
         }
         unmockkAll()
     }
