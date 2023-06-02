@@ -53,15 +53,15 @@ If you already have other type adapter factories registered, be sure place `Kotl
 When calling `create`, an optional `enableDefaultPrimitiveValues` parameter is available (default is `false`). When this property is set to `true`, nonnull primitives will automatically receive default values when none are supplied by the JSON. The table below shows which primitives are supported.
  
 | Primitive Type | Default Value |
-| --- | --- |
-| Boolean | false |
-| Byte | 0 |
-| Char | '\u0000' |
-| Double | 0.0 |
-| Float | 0.0 |
-| Int | 0 |
-| Long | 0L |
-| Short | 0 |
+|----------------|---------------|
+| Boolean        | false         |
+| Byte           | 0             |
+| Char           | '\u0000'      |
+| Double         | 0.0           |
+| Float          | 0.0           |
+| Int            | 0             |
+| Long           | 0L            |
+| Short          | 0             |
 
 <a name="how-it-works"></a>
 ## How It Works

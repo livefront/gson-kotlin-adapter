@@ -5,4 +5,4 @@
 1. Update the version number in the CHANGELOG and document all appropriate changes since the last release.
 1. Update the version number where appropriate in the README (if applicable).
 1. Create and merge a Pull Request for this branch.
-1. In GitHub, go to https://github.com/livefront/livefront-gson-kraft-android/releases and create a new release with "Draft a new release".
+1. In GitHub, go to https://github.com/livefront/gson-kotlin-adapter/releases and create a new release with "Draft a new release".
