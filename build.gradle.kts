@@ -7,15 +7,19 @@ plugins {
 buildscript {
     repositories {
         mavenCentral()
+        google()
     }
     dependencies {
+        classpath("com.android.tools.build:gradle:8.1.0")
         classpath(kotlin(module = "gradle-plugin", version = Versions.JetBrains.kotlin))
+        classpath("com.google.dagger:hilt-android-gradle-plugin:${Versions.Google.hilt}")
     }
 }
 
 allprojects {
     repositories {
         mavenCentral()
+        google()
     }
 }
 
