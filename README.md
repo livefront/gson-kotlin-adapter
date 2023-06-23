@@ -75,6 +75,41 @@ When reading JSON to a Kotlin object, the `Gson Kotlin Adapter` will ensure that
 * `@Transient` will still cause properties to be ignored. It is important to ensure that these properties have default values otherwise it will always fail to construct the object.
 * `@SerializableName` will still be used for finding the JSON property keys; when not present the variable name is used. If a single property has multiple keys found in the JSON an `IllegalArgumentException` is thrown. This may happen as the result of bad JSON with a single duplicated key or multiple alternate keys specified in the annotation that match more than one JSON key.
 
+<a name="dependencies"></a>
+## Dependencies
+
+### Application Dependencies
+
+There are no third-party dependencies required in order to use the library beyond Gson itself.
+
+### Development Environment Dependencies
+
+The following is a list of additional third-party dependencies used as part of the local development environment.
+
+- **JUnit 5**
+    - https://github.com/junit-team/junit5
+    - Purpose: Unit Testing framework for testing application code.
+    - License: Eclipse Public License 2.0
+
+- **MockK**
+    - https://github.com/mockk/mockk
+    - Purpose: Kotlin-friendly mocking library.
+    - License: Apache 2.0
+
+### CI Environment Dependencies
+
+The following is a list of third-party dependencies that are utilized as part of the CI pipeline.
+
+- **Danger**
+    - https://github.com/danger/danger
+    - Purpose: Provides a system for enforcing common Pull Request rules.
+    - License: MIT
+
+- **Danger Shroud**
+    - https://github.com/livefront/danger-shroud
+    - Purpose: A Danger plugin for enforcing code coverage coverage via a Kover / Jacoco.
+    - License: Apache 2.0
+
 <a name="license"></a>
 ## License
     Copyright 2020 Livefront
