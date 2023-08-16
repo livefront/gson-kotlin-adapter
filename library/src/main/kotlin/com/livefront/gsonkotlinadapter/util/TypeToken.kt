@@ -20,5 +20,5 @@ internal fun <T : Any> TypeToken<T>.toKClass(): KClass<T> =
  * Resolves for the type of the [property] that is member of the [TypeToken].
  */
 internal fun TypeToken<*>.resolveParameterType(
-    property: KParameter
+    property: KParameter,
 ): TypeToken<*> = TypeToken.get(`$Gson$Types`.resolve(type, rawType, property.type.javaType))

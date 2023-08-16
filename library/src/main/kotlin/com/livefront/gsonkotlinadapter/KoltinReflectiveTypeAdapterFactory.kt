@@ -26,11 +26,11 @@ import kotlin.reflect.jvm.javaConstructor
  * contract of the model and calls the class's init block.
  */
 class KotlinReflectiveTypeAdapterFactory private constructor(
-    private val enableDefaultPrimitiveValues: Boolean
+    private val enableDefaultPrimitiveValues: Boolean,
 ) : TypeAdapterFactory {
     override fun <T : Any> create(
         gson: Gson,
-        type: TypeToken<T>
+        type: TypeToken<T>,
     ): TypeAdapter<T>? {
         val rawType: Class<in T> = type.rawType
         if (rawType.isLocalClass) return null
@@ -83,7 +83,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             primaryConstructor = primaryConstructor,
             constructorParameterDefaultsMap = constructorParameterDefaultsMap,
             invalidReadParameters = invalidReadParameters,
-            constructorMap = constructorMap
+            constructorMap = constructorMap,
         )
     }
 
@@ -94,7 +94,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         private val primaryConstructor: KFunction<T>,
         private val constructorParameterDefaultsMap: Map<KParameter, Any?>,
         private val invalidReadParameters: Set<KParameter>,
-        private val constructorMap: Map<String, KParameter>
+        private val constructorMap: Map<String, KParameter>,
     ) : TypeAdapter<T>() {
         override fun write(writer: JsonWriter, value: T?) {
             if (value == null) {
@@ -125,7 +125,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
                     ?.also { parameter: KParameter ->
                         val replacedValue: Any? = constructorParams.put(
                             parameter,
-                            innerAdapters.getValue(parameter).read(reader)
+                            innerAdapters.getValue(parameter).read(reader),
                         )
                         require(replacedValue == null) {
                             "${kClass.simpleName} declares multiple JSON fields named ${parameter.name}"
@@ -151,16 +151,16 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
 
         /**
          * Returns an new instance of [KotlinReflectiveTypeAdapterFactory] which constructs classes
-         * using the default constructor, allowing for properties to initialized the properly.
+         * using the default constructor, allowing for properties to be initialized properly.
          * This ensures that the JSON fulfills the nullability contract of the model and calls the
          * class's init block. Setting the [enableDefaultPrimitiveValues] to `true` will allow
          * nonnull primitive values to use default values when manually-supplied default values are
          * not present and a value is not present in the JSON.
          */
         fun create(
-            enableDefaultPrimitiveValues: Boolean = false
+            enableDefaultPrimitiveValues: Boolean = false,
         ): KotlinReflectiveTypeAdapterFactory = KotlinReflectiveTypeAdapterFactory(
-            enableDefaultPrimitiveValues
+            enableDefaultPrimitiveValues,
         )
     }
 }
