@@ -151,7 +151,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
 
         /**
          * Returns an new instance of [KotlinReflectiveTypeAdapterFactory] which constructs classes
-         * using the default constructor, allowing for properties to initialized the properly.
+         * using the default constructor, allowing for properties to be initialized properly.
          * This ensures that the JSON fulfills the nullability contract of the model and calls the
          * class's init block. Setting the [enableDefaultPrimitiveValues] to `true` will allow
          * nonnull primitive values to use default values when manually-supplied default values are
