@@ -1,16 +1,17 @@
-buildscript {
-    // Just need to define this
+object LibraryVersion {
+    const val version = "0.3.0"
 }
 
 plugins {
     kotlin("jvm")
     id("org.jetbrains.kotlinx.kover") version Versions.JetBrains.kover
+    id("maven-publish")
 }
 
 base {
     archivesName.set("gson-kotlin-adapter")
     group = "com.livefront.gsonkotlinadapter"
-    version = "0.3.0"
+    version = LibraryVersion.version
 }
 
 dependencies {
@@ -26,6 +27,20 @@ dependencies {
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("default") {
+            groupId = "com.github.Livefront"
+            artifactId = "gson-kotlin-adapter"
+            version = LibraryVersion.version
+
+            afterEvaluate {
+                from(components["java"])
+            }
+        }
+    }
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
