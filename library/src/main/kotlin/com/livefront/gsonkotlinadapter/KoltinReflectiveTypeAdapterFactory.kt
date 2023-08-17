@@ -45,7 +45,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             .primaryConstructor
             ?.apply { isAccessible = true }
             ?: return null
-        val declaringClass: Class<T> = primaryConstructor.javaConstructor!!.declaringClass
+        val declaringClass: Class<T> = requireNotNull(primaryConstructor.javaConstructor).declaringClass
         val innerAdapters: MutableMap<KParameter, TypeAdapter<*>> = mutableMapOf()
         val constructorParameterDefaultsMap: MutableMap<KParameter, Any?> = mutableMapOf()
         val invalidReadParameters: MutableSet<KParameter> = mutableSetOf()
