@@ -39,13 +39,14 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         if (rawType.isAnnotationPresent(JsonAdapter::class.java)) return null
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
         val kotlinRawType: KClass<T> = type.toKClass()
+        kotlinRawType.objectInstance?.let { return KotlinObjectAdapter(it) }
         require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
 
         val primaryConstructor: KFunction<T> = kotlinRawType
             .primaryConstructor
             ?.apply { isAccessible = true }
             ?: return null
-        val declaringClass: Class<T> = primaryConstructor.javaConstructor!!.declaringClass
+        val declaringClass: Class<T> = requireNotNull(primaryConstructor.javaConstructor).declaringClass
         val innerAdapters: MutableMap<KParameter, TypeAdapter<*>> = mutableMapOf()
         val constructorParameterDefaultsMap: MutableMap<KParameter, Any?> = mutableMapOf()
         val invalidReadParameters: MutableSet<KParameter> = mutableSetOf()
@@ -87,7 +88,28 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         )
     }
 
-    internal class Adapter<T : Any>(
+    private class KotlinObjectAdapter<T : Any>(
+        private val t: T,
+    ) : TypeAdapter<T>() {
+        override fun write(writer: JsonWriter, value: T?) {
+            if (value == null) {
+                writer.nullValue()
+                return
+            }
+            writer.beginObject().endObject()
+        }
+
+        override fun read(reader: JsonReader): T? {
+            if (reader.peek() == JsonToken.NULL) {
+                reader.nextNull()
+                return null
+            }
+            reader.skipValue()
+            return t
+        }
+    }
+
+    private class Adapter<T : Any>(
         private val delegateAdapter: TypeAdapter<T>,
         private val innerAdapters: Map<KParameter, TypeAdapter<*>>,
         private val kClass: KClass<T>,

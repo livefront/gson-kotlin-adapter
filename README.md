@@ -63,6 +63,8 @@ When calling `create`, an optional `enableDefaultPrimitiveValues` parameter is a
 | Long           | 0L            |
 | Short          | 0             |
 
+Deserializing any Kotlin singletons denoted by the `object` keyword will return the correct singleton instance. A singleton object is always serialized as an empty JSON structure (`{}`).
+
 <a name="how-it-works"></a>
 ## How It Works
 The `Gson Kotlin Adapter` operates on all Kotlin classes and allows Gson's default adapter to handle the rest. The actual functionality for Kotlin classes depends on whether you are reading or writing. All non-Kotlin classes will be ignored by the `Gson Kotlin Adapter`.

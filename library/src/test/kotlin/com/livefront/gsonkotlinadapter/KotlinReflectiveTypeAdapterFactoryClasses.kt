@@ -81,6 +81,8 @@ data class SerializableNameData(
     @SerializedName("gone") val missingString: String?
 )
 
+object SingletonData
+
 data class StringData(
     val nonnullString: String,
     val nullableString1: String?,
