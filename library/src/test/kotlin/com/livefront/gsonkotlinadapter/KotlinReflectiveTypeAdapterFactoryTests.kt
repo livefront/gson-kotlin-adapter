@@ -39,6 +39,24 @@ class KotlinReflectiveTypeAdapterFactoryTests {
     }
 
     @Test
+    fun fromJson_singletonData() {
+        // Should deserialize the JSON to a SingletonData object and make sure it
+        // matches the pre-constructed data.
+        val expectedData = SingletonData
+        val actualData = gson.fromJson<SingletonData>("""{}""")
+        assertEquals(expectedData, actualData)
+    }
+
+    @Test
+    fun toJson_singletonData() {
+        // Should serialize the SingletonData object to JSON and make sure it
+        // matches the pre-defined data.
+        val expectedJson = """{}"""
+        val actualJson = gson.toJson(SingletonData)
+        assertEquals(expectedJson, actualJson)
+    }
+
+    @Test
     fun fromJson_booleanData() {
         // Should deserialize the JSON to a BooleanData object and make sure it
         // matches the pre-constructed data.

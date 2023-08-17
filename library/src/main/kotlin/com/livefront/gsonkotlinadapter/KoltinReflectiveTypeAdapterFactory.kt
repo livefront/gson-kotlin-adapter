@@ -39,6 +39,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         if (rawType.isAnnotationPresent(JsonAdapter::class.java)) return null
         if (!rawType.isAnnotationPresent(KOTLIN_METADATA)) return null
         val kotlinRawType: KClass<T> = type.toKClass()
+        kotlinRawType.objectInstance?.let { return KotlinObjectAdapter(it) }
         require(!kotlinRawType.isInner) { "Cannot serialize inner class ${rawType.name}" }
 
         val primaryConstructor: KFunction<T> = kotlinRawType
@@ -85,6 +86,27 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
             invalidReadParameters = invalidReadParameters,
             constructorMap = constructorMap,
         )
+    }
+
+    private class KotlinObjectAdapter<T : Any>(
+        private val t: T,
+    ) : TypeAdapter<T>() {
+        override fun write(writer: JsonWriter, value: T?) {
+            if (value == null) {
+                writer.nullValue()
+                return
+            }
+            writer.beginObject().endObject()
+        }
+
+        override fun read(reader: JsonReader): T? {
+            if (reader.peek() == JsonToken.NULL) {
+                reader.nextNull()
+                return null
+            }
+            reader.skipValue()
+            return t
+        }
     }
 
     private class Adapter<T : Any>(
