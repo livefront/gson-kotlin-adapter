@@ -7,6 +7,7 @@ When `enableDefaultPrimitiveValues` is set, always treat primitives as though th
 Only fetch the delegate adapter when the property is going to be serialized/deserialized
 Move checks for `isSealed` and `isAbstract` from `create` to `read` since Gson will still serialize the data, even if we cannot deserialize it
 Minor performance improvements
+Add support for Kotlin `object`s
 
 # 0.2.0
 Allow use to optionally use default primitive values when missing from JSON
