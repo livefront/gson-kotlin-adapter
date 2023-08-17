@@ -87,7 +87,7 @@ class KotlinReflectiveTypeAdapterFactory private constructor(
         )
     }
 
-    internal class Adapter<T : Any>(
+    private class Adapter<T : Any>(
         private val delegateAdapter: TypeAdapter<T>,
         private val innerAdapters: Map<KParameter, TypeAdapter<*>>,
         private val kClass: KClass<T>,
